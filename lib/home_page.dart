@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle; 
 import 'book.dart';
+import 'widgets/category_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -32,6 +33,12 @@ class _HomePageState extends State<HomePage> {
               Text(_filter!, style: const TextStyle(fontSize: 12)),
           ],
         ),
+        actions:[
+          IconButton(
+            icon:const Icon(Icons.info_outline),
+            onPressed:() => Navigator.pushNamed(context,'/about'),
+          ),
+        ],
       ),
       body: FutureBuilder<List<String>>(
         future: _loadCategories(),
@@ -50,21 +57,17 @@ class _HomePageState extends State<HomePage> {
             itemCount: categories.length,
             itemBuilder: (context, i) {
               final category = categories[i];
-              return Card(
-                child: InkWell(
-                  onTap: () async {
-                    
-                    final result = await Navigator.pushNamed(
-                        context, '/list',
-                        arguments: category);
-                    if (result != null && mounted) {
-                      setState(() => _filter = result as String); 
-                    }
-                  },
-                  child: Center(child: Text(category)),
-                ),
+              return CategoryCard(
+                category: category,
+                onTap: () async {                     
+                  final result = await Navigator.pushNamed(context, '/list', arguments: category);
+                  if (result != null && mounted) {
+                    setState(() => _filter = result as String);
+                  }
+                },
               );
             },
+            
           );
         },
       ),

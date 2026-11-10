@@ -2,10 +2,16 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle; 
 import 'book.dart';
+import 'widgets/book_tile.dart';
 
-class ListPage extends StatelessWidget {
+class ListPage extends StatefulWidget {
   const ListPage({super.key});
+  @override
+  State<ListPage> createState() => _ListPageState();
+}
 
+class _ListPageState extends State<ListPage> {
+  int _visibleCount = 20;
   Future<List<Book>> _loadBooks() async {
     final text = await rootBundle.loadString('assets/books.json');
     final List<dynamic> list = jsonDecode(text);
@@ -27,16 +33,24 @@ class ListPage extends StatelessWidget {
           if(category != null){
             books = books.where((b) => b.category == category).toList();
           }
+          final visible = books.take(_visibleCount).toList();
+          final hasMore = books.length > visible.length;
+
           return ListView.builder(
-            itemCount: books.length, 
+            itemCount: visible.length + (hasMore ? 1 : 0),
             itemBuilder: (context, i) {
-              final book = books[i];
-              return ListTile(
-                leading: const Icon(Icons.menu_book),
-                title: Text(book.title),
-                subtitle: Text('${book.author} · ${book.category}'),
-                trailing: Text('${book.borrowCount}次'),
-                onTap: () => Navigator.pushNamed(context, '/detail', arguments: book),
+              if (i == visible.length) {
+                return Center(
+                  child: TextButton(
+                    onPressed: () => setState(() => _visibleCount += 20), 
+                    child: const Text('加载更多'),
+                  ),
+                );
+              }
+              final book = visible[i];
+              return BookTile(
+                book: book,
+                onTap: (b) => Navigator.pushNamed(context, '/detail', arguments: b),
                 onLongPress: () => _showFilterSheet(context), 
               );
             },
